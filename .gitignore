@@ -40,3 +40,4 @@ function.zip           # O arquivo zip gerado para o Lambda
 
 # Outras ideias
 *.hcl
+.DS_Store
