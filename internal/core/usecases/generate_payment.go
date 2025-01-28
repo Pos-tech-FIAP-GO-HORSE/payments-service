@@ -18,7 +18,7 @@ func NewGeneratePayment(generatorPayment interfaces.IGeneratorPayment) *Generate
 }
 
 func (uc *GeneratePayment) Execute(ctx context.Context, input entities.Input) (*dto.ResponseCreatePayment, error) {
-	paymentInfos, err := uc.GeneratorPayment.GeneratePaymentToOrder(ctx, input.Amount, input.Description, input.Email)
+	paymentInfos, err := uc.GeneratorPayment.GeneratePaymentToOrder(ctx, input.Amount, input.OrderID)
 	if err != nil {
 		return nil, err
 	}

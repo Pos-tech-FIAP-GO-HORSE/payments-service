@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"github.com/Pos-tech-FIAP-GO-HORSE/payments-service/internal/handlers"
 	"github.com/Pos-tech-FIAP-GO-HORSE/payments-service/internal/infra/client"
 	"github.com/aws/aws-lambda-go/events"
@@ -9,7 +10,6 @@ import (
 	mercadopagoclient "github.com/mercadopago/sdk-go/pkg/config"
 	"github.com/mercadopago/sdk-go/pkg/payment"
 	"log"
-	"net/http"
 )
 
 func main() {
@@ -31,17 +31,14 @@ func main() {
 	// Handler
 	paymentHandler := handlers.NewPaymentHandler(paymentClient)
 
-	lambda.Start(func(ctx context.Context, event events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-		switch event.Resource {
-		case "/api/v1/payments":
-			return paymentHandler.HandleCreatePayment(ctx, event)
-		case "/api/v1/payments/{id}":
-			return paymentHandler.HandleGetStatusPayment(ctx, event)
+	lambda.Start(func(ctx context.Context, event interface{}) (interface{}, error) {
+		switch e := event.(type) {
+		case events.APIGatewayProxyRequest:
+			return paymentHandler.HandleGetStatusPayment(ctx, e)
+		case events.SNSEvent:
+			return nil, paymentHandler.HandleCreatePayment(ctx, e)
 		default:
-			return events.APIGatewayProxyResponse{
-				StatusCode: http.StatusNotFound,
-				Body:       "Route not found",
-			}, nil
+			return nil, fmt.Errorf("unknown event type: %T", e)
 		}
 	})
 }

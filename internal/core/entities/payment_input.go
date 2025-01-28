@@ -3,9 +3,8 @@ package entities
 import "github.com/Pos-tech-FIAP-GO-HORSE/payments-service/internal/infra/dto"
 
 type Input struct {
-	Amount      float64 `json:"amount"`
-	Description string  `json:"description"`
-	Email       string  `json:"email"`
+	Amount  float64 `json:"amount"`
+	OrderID string  `json:"orderID"`
 }
 
 type ResponseCreatePayment struct {

@@ -17,14 +17,10 @@ func NewGeneratorPayment(client payment.Client) *GeneratorPayment {
 	}
 }
 
-func (p *GeneratorPayment) GeneratePaymentToOrder(ctx context.Context, amount float64, description string, email string) (*dto.ResponseCreatePayment, error) {
+func (p *GeneratorPayment) GeneratePaymentToOrder(ctx context.Context, amount float64) (*dto.ResponseCreatePayment, error) {
 	request := payment.Request{
 		TransactionAmount: amount,
-		Description:       description,
 		PaymentMethodID:   "pix",
-		Payer: &payment.PayerRequest{
-			Email: email,
-		},
 	}
 
 	response, err := p.Client.Create(ctx, request)

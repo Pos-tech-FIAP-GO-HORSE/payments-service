@@ -8,6 +8,7 @@ import (
 	"github.com/Pos-tech-FIAP-GO-HORSE/payments-service/internal/core/interfaces"
 	"github.com/Pos-tech-FIAP-GO-HORSE/payments-service/internal/core/usecases"
 	"github.com/aws/aws-lambda-go/events"
+	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -25,46 +26,64 @@ func NewPaymentHandler(generatorPayment interfaces.IGeneratorPayment) *PaymentHa
 	}
 }
 
-// CreatePayment godoc
-// @Summary      Create a new payment
-// @Description  Add a new payment to order
-// @Tags         Payments
-// @Accept       json
-// @Produce      json
-// @Param        create_payment   body      payment.Input  true  "Payment Data"
-// @Success      200     {object}  ResponseCreatePayment
-// @Failure      400     {object}  ResponseCreatePayment
-// @Failure      500     {object}  ResponseCreatePayment
-// @Router       /api/v1/payments [post]
-func (h *PaymentHandler) HandleCreatePayment(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	var input entities.Input
-	// Bind do corpo da requisição para a estrutura de dados de entrada
-	err := json.Unmarshal([]byte(request.Body), &input)
-	if err != nil {
-		return events.APIGatewayProxyResponse{
-			StatusCode: http.StatusBadRequest,
-			Body:       fmt.Sprintf("Erro ao deserializar o corpo: %v", err),
-		}, nil
+func (h *PaymentHandler) HandleCreatePayment(ctx context.Context, snsEvent events.SNSEvent) error {
+	for _, record := range snsEvent.Records {
+		sns := record.SNS
+		var input entities.Input
+
+		err := json.Unmarshal([]byte(sns.Message), &input)
+		if err != nil {
+			log.Fatalf("Erro ao fazer unmarshal: %v", err)
+		}
+		_, err = h.GeneratePaymentUseCase.Execute(ctx, input)
+		if err != nil {
+			log.Fatalf("Erro ao gerar pagamento: %v", err)
+		}
+		log.Println("Pagamento gerado com sucesso")
 	}
-
-	ctx, cancel := context.WithTimeout(ctx, time.Second*5)
-	defer cancel()
-
-	paymentInfos, err := h.GeneratePaymentUseCase.Execute(ctx, input)
-	if err != nil {
-		return events.APIGatewayProxyResponse{
-			StatusCode: http.StatusInternalServerError,
-			Body:       fmt.Sprintf("Erro ao gerar pagamento: %v", err),
-		}, nil
-	}
-
-	// Resposta de sucesso
-	return events.APIGatewayProxyResponse{
-		StatusCode: http.StatusOK,
-		Body: fmt.Sprintf(`{"message":"payment created successfully", "paymentQRCode":"%s", "paymentId":"%s"}`,
-			paymentInfos.QRCode, paymentInfos.ID),
-	}, nil
+	return nil
 }
+
+//// CreatePayment godoc
+//// @Summary      Create a new payment
+//// @Description  Add a new payment to order
+//// @Tags         Payments
+//// @Accept       json
+//// @Produce      json
+//// @Param        create_payment   body      payment.Input  true  "Payment Data"
+//// @Success      200     {object}  ResponseCreatePayment
+//// @Failure      400     {object}  ResponseCreatePayment
+//// @Failure      500     {object}  ResponseCreatePayment
+//// @Router       /api/v1/payments [post]
+//func (h *PaymentHandler) HandleCreatePayment(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+//	var input entities.Input
+//	// Bind do corpo da requisição para a estrutura de dados de entrada
+//	err := json.Unmarshal([]byte(request.Body), &input)
+//	if err != nil {
+//		return events.APIGatewayProxyResponse{
+//			StatusCode: http.StatusBadRequest,
+//			Body:       fmt.Sprintf("Erro ao deserializar o corpo: %v", err),
+//		}, nil
+//	}
+//
+//	ctx, cancel := context.WithTimeout(ctx, time.Second*5)
+//	defer cancel()
+//
+//	paymentInfos, err := h.GeneratePaymentUseCase.Execute(ctx, input)
+//	if err != nil {
+//		return events.APIGatewayProxyResponse{
+//			StatusCode: http.StatusInternalServerError,
+//			Body:       fmt.Sprintf("Erro ao gerar pagamento: %v", err),
+//		}, nil
+//	}
+//
+//	// Resposta de sucesso
+//	return events.APIGatewayProxyResponse{
+//		StatusCode: http.StatusOK,
+//		Body: fmt.Sprintf(`{"message":"payment created successfully", "paymentQRCode":"%s", "paymentId":"%s"}`,
+//			paymentInfos.QRCode, paymentInfos.ID),
+//	}, nil
+//}
 
 // GetStatusPayment StatusPayment godoc
 // @Summary      Get a payment status

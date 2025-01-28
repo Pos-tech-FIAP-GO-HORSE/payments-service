@@ -99,3 +99,21 @@ resource "aws_lambda_function" "payments-service-lambda" {
   s3_key        = "function.zip"
   role          = aws_iam_role.lambda_exec_role_payments_service.arn
 }
+
+resource "aws_sns_topic" "payments-service-sns-topic" {
+  name = "payments-service-sns-topic"
+}
+
+resource "aws_lambda_permission" "allow_sns_invocation" {
+  statement_id  = "AllowExecutionFromSNS"
+  action        = "lambda:InvokeFunction"
+  principal     = "sns.amazonaws.com"
+  function_name = aws_lambda_function.payments-service-lambda.function_name
+  source_arn    = aws_sns_topic.payments-service-sns-topic.arn
+}
+
+resource "aws_sns_topic_subscription" "my_sns_subscription" {
+  topic_arn = aws_sns_topic.payments-service-sns-topic.arn
+  protocol  = "lambda"
+  endpoint  = aws_lambda_function.payments-service-lambda.arn
+}

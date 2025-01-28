@@ -6,6 +6,6 @@ import (
 )
 
 type IGeneratorPayment interface {
-	GeneratePaymentToOrder(ctx context.Context, amount float64, description string, email string) (*dto.ResponseCreatePayment, error)
+	GeneratePaymentToOrder(ctx context.Context, amount float64) (*dto.ResponseCreatePayment, error)
 	GetPaymentStatus(ctx context.Context, paymentId int) (*dto.ResponseStatusPayment, error)
 }
