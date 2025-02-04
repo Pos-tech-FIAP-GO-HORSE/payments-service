@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"fmt"
+	"encoding/json"
 	"github.com/Pos-tech-FIAP-GO-HORSE/payments-service/internal/handlers"
 	"github.com/Pos-tech-FIAP-GO-HORSE/payments-service/internal/infra/client"
 	"github.com/aws/aws-lambda-go/events"
@@ -24,21 +24,25 @@ func main() {
 	if err != nil {
 		log.Fatalf("Erro ao criar configuração: %v", err)
 	}
-
 	mpClient := payment.NewClient(cfg)
 	paymentClient := client.NewGeneratorPayment(mpClient)
 
 	// Handler
 	paymentHandler := handlers.NewPaymentHandler(paymentClient)
 
-	lambda.Start(func(ctx context.Context, event interface{}) (interface{}, error) {
-		switch e := event.(type) {
-		case events.APIGatewayProxyRequest:
-			return paymentHandler.HandleGetStatusPayment(ctx, e)
-		case events.SNSEvent:
-			return nil, paymentHandler.HandleCreatePayment(ctx, e)
-		default:
-			return nil, fmt.Errorf("unknown event type: %T", e)
+	lambda.Start(func(ctx context.Context, event json.RawMessage) (interface{}, error) {
+		var apiGatewayEvent events.APIGatewayProxyRequest
+		var snsEvent events.SNSEvent
+
+		if err := json.Unmarshal(event, &apiGatewayEvent); err == nil && apiGatewayEvent.Resource != "" {
+			return paymentHandler.HandleGetStatusPayment(ctx, apiGatewayEvent)
 		}
+
+		if err := json.Unmarshal(event, &snsEvent); err == nil && len(snsEvent.Records) > 0 {
+			return paymentHandler.HandleCreatePayment(ctx, snsEvent)
+		}
+
+		log.Fatal("Event not supported")
+		return nil, nil
 	})
 }

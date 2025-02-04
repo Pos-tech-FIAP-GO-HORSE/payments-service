@@ -7,6 +7,7 @@ import (
 	"github.com/Pos-tech-FIAP-GO-HORSE/payments-service/internal/core/entities"
 	"github.com/Pos-tech-FIAP-GO-HORSE/payments-service/internal/core/interfaces"
 	"github.com/Pos-tech-FIAP-GO-HORSE/payments-service/internal/core/usecases"
+	"github.com/Pos-tech-FIAP-GO-HORSE/payments-service/internal/infra/dto"
 	"github.com/aws/aws-lambda-go/events"
 	"log"
 	"net/http"
@@ -26,64 +27,34 @@ func NewPaymentHandler(generatorPayment interfaces.IGeneratorPayment) *PaymentHa
 	}
 }
 
-func (h *PaymentHandler) HandleCreatePayment(ctx context.Context, snsEvent events.SNSEvent) error {
+func (h *PaymentHandler) HandleCreatePayment(ctx context.Context, snsEvent events.SNSEvent) (*dto.ResponseCreatePayment, error) {
 	for _, record := range snsEvent.Records {
 		sns := record.SNS
+
+		var rawMessage string
+		err := json.Unmarshal([]byte(sns.Message), &rawMessage)
+		if err != nil {
+			log.Fatal("Failed to deserialize initial JSON:", err)
+			return nil, err
+		}
+
 		var input entities.Input
+		err = json.Unmarshal([]byte(rawMessage), &input)
+		if err != nil {
+			log.Fatal("Failed to deserialize final JSON:", err)
+			return nil, err
+		}
 
-		err := json.Unmarshal([]byte(sns.Message), &input)
+		paymentGenerated, err := h.GeneratePaymentUseCase.Execute(ctx, input)
 		if err != nil {
-			log.Fatalf("Erro ao fazer unmarshal: %v", err)
+			log.Fatalf("Error while generating payment: %v", err)
+			return nil, err
 		}
-		_, err = h.GeneratePaymentUseCase.Execute(ctx, input)
-		if err != nil {
-			log.Fatalf("Erro ao gerar pagamento: %v", err)
-		}
-		log.Println("Pagamento gerado com sucesso")
+		log.Println("Payment created successfully:", paymentGenerated)
+		return paymentGenerated, nil
 	}
-	return nil
+	return nil, nil
 }
-
-//// CreatePayment godoc
-//// @Summary      Create a new payment
-//// @Description  Add a new payment to order
-//// @Tags         Payments
-//// @Accept       json
-//// @Produce      json
-//// @Param        create_payment   body      payment.Input  true  "Payment Data"
-//// @Success      200     {object}  ResponseCreatePayment
-//// @Failure      400     {object}  ResponseCreatePayment
-//// @Failure      500     {object}  ResponseCreatePayment
-//// @Router       /api/v1/payments [post]
-//func (h *PaymentHandler) HandleCreatePayment(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-//	var input entities.Input
-//	// Bind do corpo da requisição para a estrutura de dados de entrada
-//	err := json.Unmarshal([]byte(request.Body), &input)
-//	if err != nil {
-//		return events.APIGatewayProxyResponse{
-//			StatusCode: http.StatusBadRequest,
-//			Body:       fmt.Sprintf("Erro ao deserializar o corpo: %v", err),
-//		}, nil
-//	}
-//
-//	ctx, cancel := context.WithTimeout(ctx, time.Second*5)
-//	defer cancel()
-//
-//	paymentInfos, err := h.GeneratePaymentUseCase.Execute(ctx, input)
-//	if err != nil {
-//		return events.APIGatewayProxyResponse{
-//			StatusCode: http.StatusInternalServerError,
-//			Body:       fmt.Sprintf("Erro ao gerar pagamento: %v", err),
-//		}, nil
-//	}
-//
-//	// Resposta de sucesso
-//	return events.APIGatewayProxyResponse{
-//		StatusCode: http.StatusOK,
-//		Body: fmt.Sprintf(`{"message":"payment created successfully", "paymentQRCode":"%s", "paymentId":"%s"}`,
-//			paymentInfos.QRCode, paymentInfos.ID),
-//	}, nil
-//}
 
 // GetStatusPayment StatusPayment godoc
 // @Summary      Get a payment status
@@ -113,7 +84,6 @@ func (h *PaymentHandler) HandleGetStatusPayment(ctx context.Context, request eve
 		}, nil
 	}
 
-	// Lógica de status de pagamento com timeout
 	ctx, cancel := context.WithTimeout(ctx, time.Second*10)
 	defer cancel()
 

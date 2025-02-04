@@ -21,6 +21,9 @@ func (p *GeneratorPayment) GeneratePaymentToOrder(ctx context.Context, amount fl
 	request := payment.Request{
 		TransactionAmount: amount,
 		PaymentMethodID:   "pix",
+		Payer: &payment.PayerRequest{
+			Email: "pagamento@pagamento.com",
+		},
 	}
 
 	response, err := p.Client.Create(ctx, request)
