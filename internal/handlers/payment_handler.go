@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/Pos-tech-FIAP-GO-HORSE/payments-service/internal/core/entities"
-	"github.com/Pos-tech-FIAP-GO-HORSE/payments-service/internal/core/interfaces"
 	"github.com/Pos-tech-FIAP-GO-HORSE/payments-service/internal/core/usecases"
 	"github.com/Pos-tech-FIAP-GO-HORSE/payments-service/internal/infra/dto"
 	"github.com/aws/aws-lambda-go/events"
@@ -20,10 +19,10 @@ type PaymentHandler struct {
 	StatusPaymentUseCase   *usecases.StatusPayment
 }
 
-func NewPaymentHandler(generatorPayment interfaces.IGeneratorPayment) *PaymentHandler {
+func NewPaymentHandler(generatePayment *usecases.GeneratePayment, statusPayment *usecases.StatusPayment) *PaymentHandler {
 	return &PaymentHandler{
-		GeneratePaymentUseCase: usecases.NewGeneratePayment(generatorPayment),
-		StatusPaymentUseCase:   usecases.NewStatusPayment(generatorPayment),
+		GeneratePaymentUseCase: generatePayment,
+		StatusPaymentUseCase:   statusPayment,
 	}
 }
 

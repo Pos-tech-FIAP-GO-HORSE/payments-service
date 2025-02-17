@@ -8,12 +8,17 @@ import (
 )
 
 type GeneratePayment struct {
-	GeneratorPayment interfaces.IGeneratorPayment
+	GeneratorPayment  interfaces.IGeneratorPayment
+	PaymentRepository interfaces.IPaymentRepository
+	MessagePublisher  interfaces.IMessagePublisher
 }
 
-func NewGeneratePayment(generatorPayment interfaces.IGeneratorPayment) *GeneratePayment {
+func NewGeneratePayment(generatorPayment interfaces.IGeneratorPayment, paymentRepository interfaces.IPaymentRepository,
+	messagePublisher interfaces.IMessagePublisher) *GeneratePayment {
 	return &GeneratePayment{
-		GeneratorPayment: generatorPayment,
+		GeneratorPayment:  generatorPayment,
+		PaymentRepository: paymentRepository,
+		MessagePublisher:  messagePublisher,
 	}
 }
 
@@ -22,5 +27,19 @@ func (uc *GeneratePayment) Execute(ctx context.Context, input entities.Input) (*
 	if err != nil {
 		return nil, err
 	}
+
+	messageData := dto.NewMessageData(paymentInfos.QRCode, paymentInfos.ID)
+
+	err = uc.MessagePublisher.Send(ctx, *messageData)
+	if err != nil {
+		return nil, err
+	}
+
+	payment := entities.NewPayment(input.Amount, input.OrderID, "pendente", input.PublicID)
+	err = uc.PaymentRepository.Save(ctx, payment)
+	if err != nil {
+		return nil, err
+	}
+
 	return paymentInfos, nil
 }
