@@ -23,3 +23,21 @@ go.work.sum
 
 # env file
 .env
+
+# IDE
+.idea/
+
+# Terraform
+*.tfstate
+*.tfstate.backup
+*.tfvars
+.terraform/
+.terraform.lock.hcl
+
+# Go
+cmd/bootstrap          # O binário compilado
+function.zip           # O arquivo zip gerado para o Lambda
+
+# Outras ideias
+*.hcl
+.DS_Store
