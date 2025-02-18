@@ -2,13 +2,14 @@ package entities
 
 import (
 	"github.com/Pos-tech-FIAP-GO-HORSE/payments-service/internal/infra/dto"
+	"github.com/google/uuid"
 	"time"
 )
 
 type Input struct {
-	Amount   float64 `json:"amount"`
-	OrderID  string  `json:"order_id"`
-	PublicID string  `json:"public_id"`
+	Amount   float64   `json:"amount"`
+	OrderID  string    `json:"order_id"`
+	PublicID uuid.UUID `json:"public_id"`
 }
 
 type ResponseCreatePayment struct {
@@ -22,14 +23,14 @@ type ResponseStatusPayment struct {
 }
 
 type Payment struct {
-	Amount    float64 `json:"amount"`
-	OrderID   string  `json:"order_id"`
-	Status    string  `json:"status"`
-	CreatedAt string  `json:"created_at"`
-	PublicID  string  `json:"public_id"`
+	Amount    float64   `json:"amount"`
+	OrderID   string    `json:"order_id"`
+	Status    string    `json:"status"`
+	CreatedAt string    `json:"created_at"`
+	PublicID  uuid.UUID `json:"public_id"`
 }
 
-func NewPayment(amount float64, orderID, status, publicID string) *Payment {
+func NewPayment(amount float64, orderID, status string, publicID uuid.UUID) *Payment {
 	return &Payment{
 		Amount:    amount,
 		OrderID:   orderID,

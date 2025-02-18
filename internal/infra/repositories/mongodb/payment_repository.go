@@ -6,7 +6,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
-	"log"
 )
 
 type PaymentRepository struct {
@@ -18,13 +17,10 @@ func NewPaymentRepository(collection *mongo.Collection) *PaymentRepository {
 }
 
 func (u *PaymentRepository) Save(ctx context.Context, payment *entities.Payment) error {
-	log.Println("vai inserir no banco")
 	_, err := u.collection.InsertOne(ctx, payment)
 	if err != nil {
-		log.Println("deu erro")
 		return err
 	}
-	log.Println("deu sucesso")
 	return nil
 }
 

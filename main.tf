@@ -83,6 +83,16 @@ resource "aws_lambda_function" "payments-service-lambda" {
   s3_bucket     = "payments-service"
   s3_key        = "function.zip"
   role          = aws_iam_role.lambda_exec_role_payments_service.arn
+
+  environment {
+    variables = {
+      DB_URI             = "mongodb+srv://admin:admin123@payment-cluster.sl4mh.mongodb.net/pos-tech-fiap?retryWrites=true&w=majority"
+      DB_NAME            = "pos-tech-fiap"
+      DB_COLLECTION_NAME = "payments"
+      TOKEN_MERCADO_PAGO = "TEST-2373946154784631-101516-50ff7f4dcdff3aec43372568c77990e3-175794680"
+      SNS_TOPIC_ARN      = "arn:aws:sns:us-east-1:537124948968:payment-created-service-sns-topic"
+    }
+  }
 }
 
 #Define the sns topic for receive create payment events

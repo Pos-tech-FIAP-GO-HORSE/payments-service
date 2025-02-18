@@ -14,16 +14,18 @@ import (
 	"github.com/mercadopago/sdk-go/pkg/payment"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"log"
+	"os"
 	"time"
 )
 
 func main() {
 
 	var (
-		dbName  = "pos-tech-fiap"
-		dbURI   = "mongodb+srv://admin:admin123@payment-cluster.sl4mh.mongodb.net/pos-tech-fiap?retryWrites=true&w=majority"
-		tokenMP = "TEST-2373946154784631-101516-50ff7f4dcdff3aec43372568c77990e3-175794680"
-		//os.Getenv("TOKEN_MERCADO_PAGO")
+		dbName           = os.Getenv("DB_NAME")
+		dbCollectionName = os.Getenv("DB_COLLECTION_NAME")
+		dbURI            = os.Getenv("DB_URI")
+		tokenMP          = os.Getenv("TOKEN_MERCADO_PAGO")
+		topicARN         = os.Getenv("SNS_TOPIC_ARN")
 	)
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
@@ -44,13 +46,13 @@ func main() {
 	}
 
 	database := mongoClient.Database(dbName)
-	paymentCollection := database.Collection("payments")
+	paymentCollection := database.Collection(dbCollectionName)
 	log.Println(paymentCollection.Name())
 
 	paymentRepository := mongodb.NewPaymentRepository(paymentCollection)
 
 	// Publisher
-	messagePublisher, err := publisher.NewSNSService("arn:aws:sns:us-east-1:537124948968:payment-created-service-sns-topic")
+	messagePublisher, err := publisher.NewSNSService(topicARN)
 	if err != nil {
 		log.Fatalf("error to create SNS service: %v", err)
 	}

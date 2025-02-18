@@ -30,10 +30,6 @@ func (h *PaymentHandler) HandleCreatePayment(ctx context.Context, snsEvent event
 	for _, record := range snsEvent.Records {
 		sns := record.SNS
 
-		var record string
-		retorno, _ := json.Marshal(record)
-		log.Println("Message received from SNS:", string(retorno))
-
 		var rawMessage string
 		err := json.Unmarshal([]byte(sns.Message), &rawMessage)
 		if err != nil {
