@@ -2,13 +2,12 @@ package mongodb
 
 import (
 	"context"
-
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
-func Connect(ctx context.Context, uri string, opts *options.ClientOptions) (*mongo.Client, error) {
+func Connect(ctx context.Context, opts *options.ClientOptions) (*mongo.Client, error) {
 	mongoClient, err := mongo.Connect(ctx, opts)
 	if err != nil {
 		return nil, err

@@ -31,7 +31,7 @@ resource "aws_iam_policy" "lambda_all_policies" {
       {
         Action   = "sns:*"
         Effect   = "Allow"
-        Resource = aws_sns_topic.payments-service-sns-topic.arn
+        Resource = aws_sns_topic.create-payment-service-sns-topic.arn
       },
       {
         Action   = "lambda:InvokeFunction"
@@ -62,6 +62,14 @@ resource "aws_iam_policy" "lambda_all_policies" {
         ]
         Effect   = "Allow"
         Resource = "*"
+      },
+      #Permissões para escrever em um tópico
+      {
+        Action   = [
+          "sns:Publish"
+        ]
+        Effect   = "Allow"
+        Resource = aws_sns_topic.payment-created-service-sns-topic.arn
       }
     ]
   })
@@ -77,14 +85,19 @@ resource "aws_lambda_function" "payments-service-lambda" {
   role          = aws_iam_role.lambda_exec_role_payments_service.arn
 }
 
-#Define the sns topic
-resource "aws_sns_topic" "payments-service-sns-topic" {
-  name = "payments-service-sns-topic"
+#Define the sns topic for receive create payment events
+resource "aws_sns_topic" "create-payment-service-sns-topic" {
+  name = "create-payment-service-sns-topic"
+}
+
+#Define the sns topic for send payment created events
+resource "aws_sns_topic" "payment-created-service-sns-topic" {
+  name = "payment-created-service-sns-topic"
 }
 
 #Define the signature of the sns topic in the lambda to be invoked
 resource "aws_sns_topic_subscription" "my_sns_subscription" {
-  topic_arn = aws_sns_topic.payments-service-sns-topic.arn
+  topic_arn = aws_sns_topic.create-payment-service-sns-topic.arn
   protocol  = "lambda"
   endpoint  = aws_lambda_function.payments-service-lambda.arn
 }
@@ -102,6 +115,12 @@ resource "aws_iam_policy_attachment" "attach_policy_to_user" {
    policy_arn = aws_iam_policy.lambda_all_policies.arn
    users      = ["github-payments-service"]
  }
+
+# Anexar a política ao usuário
+resource "aws_iam_user_policy_attachment" "sns_attach_policy" {
+  user       = aws_iam_user.github_payments_service.name
+  policy_arn = aws_iam_policy.lambda_all_policies.arn
+}
 
 resource "aws_iam_user" "github_payments_service" {
   name = "github-payments-service"

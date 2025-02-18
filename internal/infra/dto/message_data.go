@@ -7,7 +7,9 @@ type MessageData struct {
 
 func NewMessageData(qrCode string, id int) *MessageData {
 	return &MessageData{
-		QRCode: qrCode,
-		ID:     id,
+		QRCode: qrCode, //qr code
+		ID:     id,     //id do evento
+		//public id
+		//status - confirmado
 	}
 }
