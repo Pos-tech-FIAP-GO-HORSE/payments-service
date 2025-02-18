@@ -1,0 +1,44 @@
+services:
+  database-mongo:
+    container_name: mongo_db
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=admin123
+      - MONGO_INITDB_DATABASE=admin
+    restart: always
+    networks:
+      - payments-service_tech_challenge_fiap
+    volumes:
+      - mongo_data:/data/db
+      - mongo_config:/data/configdb
+
+  api:
+    depends_on:
+      - database-mongo
+    container_name: tech_challenge_api
+    image: postechfiap01/order-management:v1
+    ports:
+      - "8080:8080"
+    environment:
+      - APP_ENV=prod
+      - DB_STORAGE=mongo
+      - DB_HOST=mongo_db
+      - DB_PORT=27017
+      - DB_USER=admin
+      - DB_PASSWORD=admin123
+      - DB_NAME=pos-tech-fiap
+      - DB_URI=mongodb://admin:admin123@payments-cluster.mongodb.net/payments-db?retryWrites=true&w=majority
+    restart: always
+    networks:
+      - payments-service_tech_challenge_fiap
+
+volumes:
+  mongo_data: {}
+  mongo_config: {}
+
+networks:
+  payments-service_tech_challenge_fiap:
+    driver: bridge
