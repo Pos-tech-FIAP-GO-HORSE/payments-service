@@ -30,15 +30,8 @@ func (h *PaymentHandler) HandleCreatePayment(ctx context.Context, snsEvent event
 	for _, record := range snsEvent.Records {
 		sns := record.SNS
 
-		var rawMessage string
-		err := json.Unmarshal([]byte(sns.Message), &rawMessage)
-		if err != nil {
-			log.Fatal("Failed to deserialize initial JSON:", err)
-			return nil, err
-		}
-
 		var input entities.Input
-		err = json.Unmarshal([]byte(rawMessage), &input)
+		err := json.Unmarshal([]byte(sns.Message), &input)
 		if err != nil {
 			log.Fatal("Failed to deserialize final JSON:", err)
 			return nil, err
@@ -94,9 +87,16 @@ func (h *PaymentHandler) HandleGetStatusPayment(ctx context.Context, request eve
 		}, nil
 	}
 
-	// Retorno com status do pagamento
+	paymentStatusJSON, err := json.Marshal(paymentStatusResponse)
+	if err != nil {
+		return events.APIGatewayProxyResponse{
+			StatusCode: http.StatusInternalServerError,
+			Body:       `{"error": "Failed to serialize payment status"}`,
+		}, nil
+	}
+
 	return events.APIGatewayProxyResponse{
 		StatusCode: http.StatusOK,
-		Body:       fmt.Sprintf(`{"result":"%s"}`, paymentStatusResponse),
+		Body:       string(paymentStatusJSON),
 	}, nil
 }

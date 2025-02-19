@@ -1,5 +1,7 @@
 package dto
 
+import "strconv"
+
 type MessageData struct {
 	ID       string `json:"id"`
 	PublicID string `json:"public_id"`
@@ -10,7 +12,7 @@ type MessageData struct {
 func NewMessageData(qrCode string, id int, publicID string) *MessageData {
 	return &MessageData{
 		QRCode:   qrCode,
-		ID:       string(id),
+		ID:       strconv.Itoa(id),
 		PublicID: publicID,
 		Status:   "Confirmado",
 	}
