@@ -1,15 +1,19 @@
 package dto
 
+import "strconv"
+
 type MessageData struct {
-	QRCode string `json:"qr_code,omitempty"`
-	ID     int    `json:"id,omitempty"`
+	ID       string `json:"id"`
+	PublicID string `json:"public_id"`
+	Status   string `json:"status"`
+	QRCode   string `json:"qr_code"`
 }
 
-func NewMessageData(qrCode string, id int) *MessageData {
+func NewMessageData(qrCode string, id int, publicID string) *MessageData {
 	return &MessageData{
-		QRCode: qrCode, //qr code
-		ID:     id,     //id do evento
-		//public id
-		//status - confirmado
+		QRCode:   qrCode,
+		ID:       strconv.Itoa(id),
+		PublicID: publicID,
+		Status:   "Confirmado",
 	}
 }

@@ -29,7 +29,7 @@ type Payment struct {
 	PublicID  string  `json:"public_id"`
 }
 
-func NewPayment(amount float64, orderID, status, publicID string) *Payment {
+func NewPayment(amount float64, orderID, status string, publicID string) *Payment {
 	return &Payment{
 		Amount:    amount,
 		OrderID:   orderID,

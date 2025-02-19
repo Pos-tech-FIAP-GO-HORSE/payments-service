@@ -31,7 +31,7 @@ resource "aws_iam_policy" "lambda_all_policies" {
       {
         Action   = "sns:*"
         Effect   = "Allow"
-        Resource = aws_sns_topic.create-payment-service-sns-topic.arn
+        Resource = aws_sns_topic.orders-service-events-order-created.arn
       },
       {
         Action   = "lambda:InvokeFunction"
@@ -69,7 +69,7 @@ resource "aws_iam_policy" "lambda_all_policies" {
           "sns:Publish"
         ]
         Effect   = "Allow"
-        Resource = aws_sns_topic.payment-created-service-sns-topic.arn
+        Resource = aws_sns_topic.payments-service-events-payment-created.arn
       }
     ]
   })
@@ -83,21 +83,31 @@ resource "aws_lambda_function" "payments-service-lambda" {
   s3_bucket     = "payments-service"
   s3_key        = "function.zip"
   role          = aws_iam_role.lambda_exec_role_payments_service.arn
+
+  environment {
+    variables = {
+      DB_URI             = "mongodb+srv://admin:admin123@payment-cluster.sl4mh.mongodb.net/pos-tech-fiap?retryWrites=true&w=majority"
+      DB_NAME            = "pos-tech-fiap"
+      DB_COLLECTION_NAME = "payments"
+      TOKEN_MERCADO_PAGO = "TEST-2373946154784631-101516-50ff7f4dcdff3aec43372568c77990e3-175794680"
+      SNS_TOPIC_ARN      = "arn:aws:sns:us-east-1:537124948968:payments-service-events-payment-created"
+    }
+  }
 }
 
 #Define the sns topic for receive create payment events
-resource "aws_sns_topic" "create-payment-service-sns-topic" {
-  name = "create-payment-service-sns-topic"
+resource "aws_sns_topic" "orders-service-events-order-created" {
+  name = "orders-service-events-order-created"
 }
 
 #Define the sns topic for send payment created events
-resource "aws_sns_topic" "payment-created-service-sns-topic" {
-  name = "payment-created-service-sns-topic"
+resource "aws_sns_topic" "payments-service-events-payment-created" {
+  name = "payments-service-events-payment-created"
 }
 
 #Define the signature of the sns topic in the lambda to be invoked
 resource "aws_sns_topic_subscription" "my_sns_subscription" {
-  topic_arn = aws_sns_topic.create-payment-service-sns-topic.arn
+  topic_arn = aws_sns_topic.orders-service-events-order-created.arn
   protocol  = "lambda"
   endpoint  = aws_lambda_function.payments-service-lambda.arn
 }
