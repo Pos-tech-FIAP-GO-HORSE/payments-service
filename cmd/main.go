@@ -47,7 +47,6 @@ func main() {
 
 	database := mongoClient.Database(dbName)
 	paymentCollection := database.Collection(dbCollectionName)
-	log.Println(paymentCollection.Name())
 
 	paymentRepository := mongodb.NewPaymentRepository(paymentCollection)
 

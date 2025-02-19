@@ -28,7 +28,7 @@ func (uc *GeneratePayment) Execute(ctx context.Context, input entities.Input) (*
 		return nil, err
 	}
 
-	messageData := dto.NewMessageData(paymentInfos.QRCode, paymentInfos.ID)
+	messageData := dto.NewMessageData(paymentInfos.QRCode, paymentInfos.ID, input.PublicID)
 
 	err = uc.MessagePublisher.Send(ctx, *messageData)
 	if err != nil {

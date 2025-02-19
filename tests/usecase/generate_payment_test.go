@@ -3,7 +3,6 @@ package usecases
 import (
 	"context"
 	"errors"
-	"github.com/google/uuid"
 	"testing"
 
 	"github.com/Pos-tech-FIAP-GO-HORSE/payments-service/internal/core/entities"
@@ -51,7 +50,7 @@ func TestExecute_Success(t *testing.T) {
 	input := entities.Input{
 		Amount:   100.0,
 		OrderID:  "order-123",
-		PublicID: uuid.New(),
+		PublicID: "f47ac10b-58cc-4372-a567-0e02b2c3d479",
 	}
 
 	mockResponse := &dto.ResponseCreatePayment{
@@ -88,7 +87,7 @@ func TestExecute_GeneratePaymentError(t *testing.T) {
 	input := entities.Input{
 		Amount:   100.0,
 		OrderID:  "order-123",
-		PublicID: uuid.New(),
+		PublicID: "f47ac10b-58cc-4372-a567-0e02b2c3d479",
 	}
 
 	mockGeneratorPayment.On("GeneratePaymentToOrder", ctx, input.Amount).Return((*dto.ResponseCreatePayment)(nil), errors.New("erro ao gerar pagamento"))
@@ -115,7 +114,7 @@ func TestExecute_MessagePublishError(t *testing.T) {
 	input := entities.Input{
 		Amount:   100.0,
 		OrderID:  "order-123",
-		PublicID: uuid.New(),
+		PublicID: "f47ac10b-58cc-4372-a567-0e02b2c3d479",
 	}
 
 	mockResponse := &dto.ResponseCreatePayment{
@@ -149,7 +148,7 @@ func TestExecute_SavePaymentError(t *testing.T) {
 	input := entities.Input{
 		Amount:   100.0,
 		OrderID:  "order-123",
-		PublicID: uuid.New(),
+		PublicID: "f47ac10b-58cc-4372-a567-0e02b2c3d479",
 	}
 
 	mockResponse := &dto.ResponseCreatePayment{
